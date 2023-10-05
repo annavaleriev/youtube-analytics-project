@@ -1,0 +1,2 @@
+[flake8]
+exclude = .venv, helper, homework-1, homework-2, homework-3, homework-5
