@@ -13,19 +13,22 @@ class Channel:
             Дальше все данные будут подтягиваться по API.
         """
 
-        self.channel_id = channel_id
+        self.__channel_id = channel_id
         channel = self.get_service().channels().list(
-            id=self.channel_id,
+            id=self.__channel_id,
             part='snippet,statistics'
         ).execute()
 
         self.title = channel['items'][0]['snippet']['title']
         self.description = channel['items'][0]['snippet']['description']
-        self.url = channel['items'][0]['snippet']['medium']['url']
+        self.url = f"https://www.youtube.com/channel/{self.__channel_id}"
         self.subscribers_count = channel['items'][0]['statistics']['subscriberCount']
         self.video_count = channel['items'][0]['statistics']['videoCount']
         self.view_count = channel['items'][0]['statistics']['viewCount']
 
+    @property
+    def channel_id(self):
+        return self.__channel_id
 
     @staticmethod
     def printj(dict_to_print: dict) -> None:
@@ -35,7 +38,7 @@ class Channel:
     def print_info(self) -> None:
         """Выводит в консоль информацию о канале."""
         channel = self.get_service().channels().list(
-            id=self.channel_id,
+            id=self.__channel_id,
             part='snippet,statistics'
         ).execute()
         self.printj(channel)
@@ -49,6 +52,18 @@ class Channel:
         youtube = build('youtube', 'v3', developerKey=api_key)
         return youtube
 
-
-
-
+    def to_json(self, file):
+        """
+        Cохраняет в файл значения атрибутов экземпляра Channel
+        """
+        data = {
+            "channel_id_": self.__channel_id,
+            "title": self.title,
+            "description": self.description,
+            "url": self.url,
+            "subscriber_count": self.subscribers_count,
+            "video_count": self.video_count,
+            "view_count": self.view_count
+        }
+        with open(file, "w", encoding="utf-8") as file:
+            json.dump(data, file, indent=2, ensure_ascii=False)
