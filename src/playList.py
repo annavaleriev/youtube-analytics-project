@@ -12,7 +12,7 @@ class PlayList:
         self.youtube = Channel.get_service()
         playlists = self.youtube.playlists().list(
             channelId=self.__playList_id,
-            part='snippet',
+            part='contentDetails,snippet',
         ).execute()
 
         self.title: str = playlists['items'][0]['snippet']['title']
@@ -35,12 +35,12 @@ class PlayList:
             id=','.join(video_ids)
         ).execute()
 
-        total_time_playlist_videos = datetime.timedelta()
+        total_duration = datetime.timedelta()
         for video in video_response['items']:
             iso_8601_duration: list = video['contentDetails']['duration']
             duration = isodate.parse_duration(iso_8601_duration)
-            total_time_playlist_videos += duration
-        return total_time_playlist_videos
+            total_duration += duration
+        return total_duration
 
     def show_best_video(self):
         """
