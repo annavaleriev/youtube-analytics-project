@@ -1,28 +1,26 @@
-from datetime import datetime
-
-import isodate
 import datetime
 
-from src.channel import Channel
+import isodate
+
+from src.mixins import YouTubeMixin
 
 
-class PlayList:
+class PlayList(YouTubeMixin):
     def __init__(self, playlist_id):
         self.__playList_id = playlist_id
-        self.youtube = Channel.get_service()
+        self.youtube = self.get_service()
         playlists = self.youtube.playlists().list(
-            channelId=self.__playList_id,
-            part='contentDetails,snippet',
+            id=self.__playList_id,
+            part='snippet',
         ).execute()
-
         self.title: str = playlists['items'][0]['snippet']['title']
-        self.url: str = f"https://www.youtube.com/watch?v={self.__playList_id}"
+        self.url: str = f"https://www.youtube.com/playlist?list={self.__playList_id}"
 
-    def total_duration(self) -> datetime:
+    def get_videos_response(self):
         """
-        Метод, который возвращает объект класса `datetime.timedelta` с суммарной длительность плейлиста
+        Метод, который возвращает  информацию с данными видео для дальнейшем работы: кол-во просмотров,
+        лайков, дизлайковюб, комментариев, продолжительность.
         """
-
         playlist_videos = self.youtube.playlistItems().list(
             playlistId=self.__playList_id,
             part='contentDetails',
@@ -34,6 +32,14 @@ class PlayList:
             part='contentDetails,statistics',
             id=','.join(video_ids)
         ).execute()
+        return video_response
+
+    @property
+    def total_duration(self) -> datetime:
+        """
+        Метод, который возвращает объект класса `datetime.timedelta` с суммарной длительность плейлиста
+        """
+        video_response = self.get_videos_response()
 
         total_duration = datetime.timedelta()
         for video in video_response['items']:
@@ -42,9 +48,17 @@ class PlayList:
             total_duration += duration
         return total_duration
 
-    def show_best_video(self):
+    def show_best_video(self) -> str:
         """
         Метод, который возвращает ссылку на самое популярное видео из плейлиста (по количеству лайков)
         """
-
-    pass
+        video_response = self.get_videos_response()
+        best_video = None
+        max_likes = 0
+        for video in video_response['items']:
+            like_count = int(video['statistics']['likeCount'])
+            if like_count > max_likes:
+                max_likes = like_count
+                best_video = video['id']
+        if best_video:
+            return f'https://youtu.be/{best_video}'
