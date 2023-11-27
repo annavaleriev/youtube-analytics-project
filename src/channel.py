@@ -1,10 +1,9 @@
 import json
-import os
 
-from googleapiclient.discovery import build
+from src.mixins import YouTubeMixin
 
 
-class Channel:
+class Channel(YouTubeMixin):
     """Класс для ютуб-канала"""
 
     def __init__(self, channel_id: str) -> None:
@@ -90,15 +89,6 @@ class Channel:
             part='snippet,statistics'
         ).execute()
         self.printj(channel)
-
-    @classmethod
-    def get_service(cls):
-        """
-        Возвращающий объект для работы с YouTube API
-        """
-        api_key: str = os.getenv('API_KEY')
-        youtube = build('youtube', 'v3', developerKey=api_key)
-        return youtube
 
     def to_json(self, file):
         """
