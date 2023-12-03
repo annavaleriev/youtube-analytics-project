@@ -9,14 +9,19 @@ class Video(YouTubeMixin):
             id=self.__video_id,
             part='snippet,statistics,contentDetails,topicDetails',
         ).execute()
-
-        self.video_title: str = video_response['items'][0]['snippet']['title']
-        self.video_url: str = f"https://youtu.be/{self.__video_id}"
-        self.view_count: int = int(video_response['items'][0]['statistics']['viewCount'])
-        self.like_count: int = int(video_response['items'][0]['statistics']['likeCount'])
+        try:
+            self.title: str = video_response['items'][0]['snippet']['title']
+            self.video_url: str = f"https://youtu.be/{self.__video_id}"
+            self.view_count: int = int(video_response['items'][0]['statistics']['viewCount'])
+            self.like_count: int = int(video_response['items'][0]['statistics']['likeCount'])
+        except IndexError:
+            self.title = None
+            self.video_url = None
+            self.view_count = None
+            self.like_count = None
 
     def __str__(self):
-        return f"{self.video_title}"
+        return f"{self.title}"
 
 
 class PLVideo(Video):
